@@ -9,10 +9,6 @@ load_dotenv()
 MONGODB_URI = os.environ.get("MONGO_URI")
 OPENAI_KEY = os.environ.get("OPENAI_API_KEY")
 
-# load_dotenv()
-# MONGO_URI = os.getenv("MONGO_URI")
-# client = MongoClient(MONGO_URI)
-
 def init_mongodb():
     try:
         client = MongoClient(MONGODB_URI, serverSelectionTimeoutMS=5000)

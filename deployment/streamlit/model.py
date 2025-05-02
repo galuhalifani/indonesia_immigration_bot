@@ -1,16 +1,15 @@
-import streamlit as st
-from pymongo import MongoClient
-from langchain_mongodb import MongoDBAtlasVectorSearch
-from langchain_openai import OpenAIEmbeddings, ChatOpenAI
-from dotenv import load_dotenv
-from streamlit_option_menu import option_menu
+import sys
 import os
 import re
-from prompt import PROFESSIONAL_PROMPT
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
+from langchain_mongodb import MongoDBAtlasVectorSearch
+from langchain_openai import OpenAIEmbeddings, ChatOpenAI
 from langchain.chains import ConversationalRetrievalChain
 from langchain.memory import ConversationBufferMemory
-from datetime import datetime, timezone
-from deployment.src.feedback_handler import is_feedback_message, extract_feedback_content, OPENAI_KEY, collection
+from prompt import PROFESSIONAL_PROMPT
+from feedback_handler import is_feedback_message, extract_feedback_content, OPENAI_KEY, collection
 
 # Initialize Embeddings
 embeddings = OpenAIEmbeddings(
