@@ -5,8 +5,8 @@ from langchain_mongodb import MongoDBAtlasVectorSearch
 from langchain_openai import OpenAIEmbeddings, ChatOpenAI
 from langchain.chains import ConversationalRetrievalChain
 from langchain.memory import ConversationBufferMemory
-from prompt import PROFESSIONAL_PROMPT
-from feedback_handler import is_feedback_message, extract_feedback_content, OPENAI_KEY, collection
+from .prompt import PROFESSIONAL_PROMPT
+from .feedback_handler import is_feedback_message, extract_feedback_content, OPENAI_KEY, collection
 
 # Initialize Embeddings
 embeddings = OpenAIEmbeddings(
