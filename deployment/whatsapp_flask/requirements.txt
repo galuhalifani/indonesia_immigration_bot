@@ -9,3 +9,4 @@ python-dotenv
 openai
 datetime
 flask
+twilio
