@@ -7,12 +7,48 @@ from flask import Flask, request, jsonify
 from deployment.streamlit.model import ask, check_question_feedback
 from deployment.streamlit.feedback_handler import save_feedback
 from twilio.twiml.messaging_response import MessagingResponse
+from twilio.rest import Client
+from threading import Thread
 
 app = Flask(__name__)
 
 @app.route("/")
 def root():
     return "Instant Immigration Bot API is running."
+
+@app.route("/whatsapp", methods=["POST"])
+def whatsapp_webhook():
+    incoming_msg = request.values.get("Body", "").strip()
+    user_id = request.values.get("From", "").strip()
+
+    # Send an immediate placeholder response
+    resp = MessagingResponse()
+    resp.message("⏳ Hang tight, let me check that for you...")
+
+    def process_response():
+        result = check_question_feedback(incoming_msg, user_id)
+
+        if result["is_feedback"]:
+            last_qna = result["last_qna"]
+            if not last_qna["question"]:
+                reply = "Sorry, please ask a question first before providing feedback."
+            else:
+                reply = save_feedback(result["feedback_obj"], last_qna)
+        else:
+            reply = ask(incoming_msg, user_id)
+            if not reply:
+                reply = "Sorry, I missed that - can you please try asking again?"
+    
+     # Send the actual message via Twilio API
+        client = Client(os.getenv("TWILIO_SID"), os.getenv("TWILIO_AUTH_TOKEN"))
+        client.messages.create(
+            from_=os.getenv("TWILIO_PHONE_NUMBER"),
+            to=user_id,
+            body=reply
+        )
+
+    Thread(target=process_response).start()
+    return str(resp)
 
 @app.route("/ask", methods=["POST"])
 def handle_question():
@@ -35,26 +71,6 @@ def handle_question():
 
     answer = ask(query, user_id)
     return jsonify({"answer": answer})
-
-@app.route("/whatsapp", methods=["POST"])
-def whatsapp_webhook():
-    incoming_msg = request.values.get("Body", "").strip()
-    user_id = request.values.get("From", "").strip()
-
-    result = check_question_feedback(incoming_msg, user_id)
-
-    if result["is_feedback"]:
-        last_qna = result["last_qna"]
-        if not last_qna["question"]:
-            reply = "Sorry, please ask a question first before providing feedback."
-        else:
-            reply = save_feedback(result["feedback_obj"], last_qna)
-    else:
-        reply = ask(incoming_msg, user_id)
-
-    resp = MessagingResponse()
-    resp.message(reply)
-    return str(resp)
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
