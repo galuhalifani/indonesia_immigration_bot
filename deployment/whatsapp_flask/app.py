@@ -1,6 +1,6 @@
 from flask import Flask, request, jsonify
-from deployment.src.model import ask, check_question_feedback
-from deployment.src.feedback_handler import save_feedback
+from deployment.streamlit.model import ask, check_question_feedback
+from deployment.streamlit.feedback_handler import save_feedback
 
 app = Flask(__name__)
 
