@@ -16,7 +16,7 @@ from streamlit_option_menu import option_menu
 import os
 import re
 from model import ask, check_question_feedback
-from feedback_handler import save_feedback
+from deployment.src.feedback_handler import save_feedback
 from text import feedback_instr, no_affiliation, description, no_replacement_for_official_advice, source_of_answer_short, source_of_answer
 
 primary_color = "#ffffff"

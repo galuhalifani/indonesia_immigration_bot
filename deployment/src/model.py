@@ -10,7 +10,7 @@ from prompt import PROFESSIONAL_PROMPT
 from langchain.chains import ConversationalRetrievalChain
 from langchain.memory import ConversationBufferMemory
 from datetime import datetime, timezone
-from feedback_handler import is_feedback_message, extract_feedback_content, OPENAI_KEY, collection
+from deployment.src.feedback_handler import is_feedback_message, extract_feedback_content, OPENAI_KEY, collection
 
 # Initialize Embeddings
 embeddings = OpenAIEmbeddings(
