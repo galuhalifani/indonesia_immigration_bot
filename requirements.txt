@@ -7,3 +7,6 @@ langchain-mongodb
 python-dotenv
 openai
 datetime
+flask
+requests
+twilio
