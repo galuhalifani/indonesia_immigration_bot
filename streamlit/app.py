@@ -15,8 +15,7 @@ from dotenv import load_dotenv
 from streamlit_option_menu import option_menu
 import os
 import re
-from model import ask, check_question_feedback
-from feedback_handler import save_feedback
+from model import ask, save_feedback
 from text import feedback_instr, no_affiliation, description, no_replacement_for_official_advice, source_of_answer_short, source_of_answer
 
 primary_color = "#ffffff"
@@ -114,13 +113,13 @@ def get_last_user_message():
     for msg in reversed(st.session_state.messages):
         if msg["role"] == "user" and msg["type"] == "question":
             return msg["content"]
-    return None
+    return None  # If no user message found
 
 def get_last_assistant_message():
     for msg in reversed(st.session_state.messages):
         if msg["role"] == "assistant" and msg["type"] == "answer":
             return msg["content"]
-    return None
+    return None  # If no assistant message found
     
 def normalize(text):
     return re.sub(r'[^\w\s]', '', text).strip().lower()
@@ -213,40 +212,40 @@ if selected == "Chatbot":
             </div>
             """, unsafe_allow_html=True)
 
+    # Input Chat
+    feedback_queries = ['Feedback', 'feedback', 'Feedback', 'Feedback?', 'feedback?', 'feedback!', 'not helpful', 'not helpful', 'not helpful?', 'not helpful?', 'not helpful!', 'helpful', 'helpful?', 'helpful!', "'helpful'", "'not helpful", "'feedback'"]
     query = st.chat_input("Ask your question here... (Example: How to apply for KITAS?)")
 
     if query:
-        is_feedback = check_question_feedback(query, "anonymous")
-        
-        if is_feedback['is_feedback']:
-            st.session_state.messages.append({"role": "user", "type": "feedback", "content": query})
-            last_question = is_feedback['last_qna']['question']
+        is_feedback = any(query.lower().startswith(w.lower()) for w in feedback_queries)
+        only_feedback_phrase = any(normalize(query) == normalize(w) for w in feedback_queries)
 
-            if not last_question:
+        if is_feedback:
+            st.session_state.messages.append({"role": "user", "type": "feedback", "content": query})
+            if not get_last_user_message():
                 st.session_state.messages.append({
                     "role": "assistant",
                     "type": "warning",
-                    "content": "Sorry, you have not asked a question, or the session has been reset. Please ask a question first before providing feedback."
+                    "content": "⚠️Sorry, you have not asked a question, or the session has been reset. Please ask a question first before providing feedback."
                 })
                 st.rerun()
+
+            normalized_feedbacks = set(normalize(q) for q in feedback_queries)
+            feedback_to_save = separate_feedback_from_query(query, normalized_feedbacks)
+
+            if only_feedback_phrase:
+                response = f"{save_feedback(feedback_to_save)}. To add more details, please type your comment after the feedback keyword."
             else:
-                feedback_obj = is_feedback['feedback_obj']
-                last_qna = is_feedback['last_qna']
-
-                response = save_feedback(feedback_obj, last_qna)
-                if "error" not in response:
-                    st.toast("Feedback recorded!", icon="💾")
-
-                st.markdown(response)
+                response = save_feedback(feedback_to_save)
+            st.markdown(response)
 
         else:
             st.session_state.messages.append({"role": "user", "type": "question", "content": query})
-
+            # Prepare Answer
             with st.spinner("Looking up..."):
                 answer = ask(query)
-
-            st.session_state.messages.append({"role": "assistant", "type": "answer", "content": answer})  
-            st.rerun()
+                st.session_state.messages.append({"role": "assistant", "type": "answer", "content": answer})  
+                st.rerun()
 
 elif selected == "About":
     st.markdown("### 📟 About Instant")
