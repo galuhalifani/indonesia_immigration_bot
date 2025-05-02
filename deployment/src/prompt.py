@@ -28,8 +28,8 @@ PROFESSIONAL_PROMPT = PromptTemplate(
     - If there are multiple Reference, only include the most relevant one
     - If Reference is empty or not available, omit the "Reference" section
     - Only return the "Answer" and DO NOT mention "Question:" in your final output
-    - If the user asks something around "what was my last question?", refer to the most recent user query in the chat_history, which is the last question in HumanMessage, and NOT the answer from AIMessage.
-    - If the user asks something around "what was your last answer?", refer to the most recent answer the chat_history, which is the last answer from AIMessage.
+    - When retrieving user's last question, refer to the most recent user query in the chat_history which is NOT regarding 'what is the last question'.
+    - When retrieving user's last question, repeat the last question mentioned by the user itself and do NOT refer to context question.
     - Retain memory of the conversation and provide contextually relevant answers
     - End your answer with feeback section in a new line: "To provide feedback, you can type 'helpful' or 'not helpful' followed by your comment."
     - Add two new lines before the "feedback" section
