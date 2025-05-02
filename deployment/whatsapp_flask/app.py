@@ -21,23 +21,26 @@ def whatsapp_webhook():
     incoming_msg = request.values.get("Body", "").strip()
     user_id = request.values.get("From", "").strip()
 
-    # Send an immediate placeholder response
-    resp = MessagingResponse()
-    resp.message("⏳ Hang tight, let me check that for you...")
+    result = check_question_feedback(incoming_msg, user_id)
+
+    if result["is_feedback"]:
+        last_qna = result["last_qna"]
+        if not last_qna["question"]:
+            reply = "Sorry, please ask a question first before providing feedback."
+        else:
+            reply = save_feedback(result["feedback_obj"], last_qna)
+        
+        resp = MessagingResponse()
+        resp.message(reply)
+    else:
+        # send an immediate placeholder response
+        resp = MessagingResponse()
+        resp.message("⏳ let me check that for you...")
 
     def process_response():
-        result = check_question_feedback(incoming_msg, user_id)
-
-        if result["is_feedback"]:
-            last_qna = result["last_qna"]
-            if not last_qna["question"]:
-                reply = "Sorry, please ask a question first before providing feedback."
-            else:
-                reply = save_feedback(result["feedback_obj"], last_qna)
-        else:
-            reply = ask(incoming_msg, user_id)
-            if not reply:
-                reply = "Sorry, I missed that - can you please try asking again?"
+        reply = ask(incoming_msg, user_id)
+        if not reply:
+            reply = "Sorry, I missed that - can you please try asking again?"
     
      # Send the actual message via Twilio API
         client = Client(os.getenv("TWILIO_SID"), os.getenv("TWILIO_AUTH_TOKEN"))

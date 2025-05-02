@@ -69,7 +69,8 @@ def create_conversational_chain(user_id: None):
 def clean_answer(raw_answer):
     formatted = re.sub(r'(\d+\.)\s', r'\n\1 ', raw_answer)
     cleaned = re.sub(r'[*_]{2}', '', formatted)
-    return cleaned.strip()
+    reference_checked = re.sub(r'^.*Read more at(?!.*(https?://|www\.)).*$', '', cleaned, flags=re.MULTILINE)
+    return reference_checked.strip()
 
 last_qna_map = {}
 
