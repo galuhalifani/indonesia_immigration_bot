@@ -27,9 +27,10 @@ def whatsapp_webhook():
 
     user = check_user(user_id)
     new_user = user['status'] == 'new'
+    resp = MessagingResponse()
 
     if new_user:
-        resp = MessagingResponse()
+        print(f"########### Send initial greetings: {user_id}")
         resp.message(greeting)
 
     if result["is_feedback"]:
@@ -38,16 +39,18 @@ def whatsapp_webhook():
         else:
             reply = save_feedback(result["feedback_obj"], last_qna)
         
-        resp = MessagingResponse()
+        print(f"########### Send feedback acknowledgement: {user_id}")
         return resp.message(reply)
+    
     else:
         is_question = starts_with_question_keyword(incoming_msg)
         # send an immediate placeholder response
+
         if not last_qna["question"] and is_question:
-            reply = "⏳ let me check that for you..."
+            resp.message("⏳ let me check that for you...")
 
         def process_response():
-            print('######### Asking.........')
+            print(f"########### Running process_response for user: {user_id}")
             reply = ask(incoming_msg, user_id)
             if not reply:
                 reply = "Sorry, I missed that - can you please try asking again?"
@@ -60,32 +63,8 @@ def whatsapp_webhook():
                 body=reply
             )
 
-        print('######### Asking.........')
         Thread(target=process_response).start()
-        resp = MessagingResponse()
-        return resp.message(reply)
-
-@app.route("/ask", methods=["POST"])
-def handle_question():
-    data = request.json
-    query = data.get("query")
-    user_id = data.get("user_id", "anonymous")
-
-    if not query:
-        return jsonify({"error": "No query provided"}), 400
-
-    result = check_question_feedback(query, user_id)
-    
-    if result["is_feedback"]:
-        last_qna = result["last_qna"]
-        if not last_qna["question"]:
-            return jsonify({"message": "Sorry, please ask a question first before providing feedback."}), 400
-
-        save_result = save_feedback(result["feedback_obj"], last_qna)
-        return jsonify({"message": save_result}), 200
-
-    answer = ask(query, user_id)
-    return jsonify({"answer": answer})
+        return str(resp)
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
