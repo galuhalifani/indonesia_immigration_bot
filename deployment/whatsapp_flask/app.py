@@ -4,8 +4,8 @@ import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 
 from flask import Flask, request, jsonify
-from deployment.streamlit.model import ask, check_question_feedback, check_user
-from deployment.streamlit.feedback_handler import save_feedback
+from deployment.streamlit.model import ask
+from deployment.streamlit.handler import save_feedback, starts_with_question_keyword, check_question_feedback, check_user
 from deployment.streamlit.text import greeting
 from twilio.twiml.messaging_response import MessagingResponse
 from twilio.rest import Client
@@ -26,7 +26,10 @@ def whatsapp_webhook():
     last_qna = result["last_qna"]
 
     user = check_user(user_id)
-    if user['status'] == 'new':
+    new_user = user['status'] == 'new'
+    
+    if new_user:
+        resp = MessagingResponse()
         resp.message(greeting)
 
     if result["is_feedback"]:
@@ -38,8 +41,9 @@ def whatsapp_webhook():
         resp = MessagingResponse()
         return resp.message(reply)
     else:
+        is_question = starts_with_question_keyword(incoming_msg)
         # send an immediate placeholder response
-        if not last_qna["question"]:
+        if not last_qna["question"] and is_question:
             resp = MessagingResponse()
             resp.message("⏳ let me check that for you...")
 

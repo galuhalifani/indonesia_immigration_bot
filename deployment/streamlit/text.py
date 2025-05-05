@@ -17,3 +17,11 @@ greeting = (
     "You can ask about Indonesian Passport or M-Paspor, Visa, Stay permit, and more.\n"
     "You can ask in English or in Bahasa Indonesian."
 )
+
+question_keywords = [
+    "what is", "what are", "which", "when", "where", "whom", "whose", 
+    "how", "how to", "how do i", "why", "how come", "how much", "how can",
+    "how many", "is", "are", "do", "does", "can", "should", 
+    "would", "will", "could", "shall", "should i", "what if", 
+    "do you think", "how long"
+]

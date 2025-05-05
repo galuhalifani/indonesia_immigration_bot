@@ -3,6 +3,7 @@ from datetime import datetime, timezone
 from pymongo import MongoClient
 import os
 from dotenv import load_dotenv
+from .text import question_keywords
 
 # Load Environment Variables
 load_dotenv()
@@ -60,3 +61,41 @@ def save_feedback(feedback_obj: dict, last_qna: dict) -> str:
         return "Thank you for your feedback! We have recorded it successfully"
     except Exception as e:
         return f"An error occured when saving feedback: {str(e)}"
+
+last_qna_map = {}
+
+def store_last_qna(user_id, question, answer):
+    last_qna_map[user_id] = {"question": question, "answer": answer}
+    last_qna_map["anonymous"] = {"question": question, "answer": answer}
+
+def get_last_question(user_id="anonymous"):
+    return last_qna_map.get(user_id, {}).get("question", "")
+
+def get_last_answer(user_id="anonymous"):
+    return last_qna_map.get(user_id, {}).get("answer", "")
+
+def check_question_feedback(query, user_id="anonymous"):
+    feedback_obj = None
+    last_qna = {"question": None, "answer": None}
+
+    if is_feedback_message(query):
+        feedback_obj = extract_feedback_content(query)
+        last_qna = {
+            "question": get_last_question(user_id),
+            "answer": get_last_answer(user_id),
+        }
+        return {"is_feedback": True, "query": query, "feedback_obj": feedback_obj, "last_qna": last_qna}
+    else:
+        return {"is_feedback": False, "query": query, "feedback_obj": feedback_obj, "last_qna": last_qna}
+    
+def check_user(user_id):
+    user_details = user_collection.find_one({"user_id": user_id})
+    if user_details:
+        return {"status": "existing", "user_id": user_id}
+    else:
+        user_collection.insert_one({"user_id": user_id, "timestamp": datetime.now(timezone.utc).isoformat()})
+        return {"status": "new", "user_id": user_id}
+
+def starts_with_question_keyword(query: str) -> bool:
+    query_lower = query.lower().strip()
+    return any(query_lower.startswith(keyword) for keyword in question_keywords)
