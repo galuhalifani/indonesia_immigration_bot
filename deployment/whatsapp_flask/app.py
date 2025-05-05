@@ -25,7 +25,7 @@ def whatsapp_webhook():
     lang = detect_language(incoming_msg)
     
     if lang != "en" and lang != "id":
-        question = translate_answer('id', incoming_msg)
+        question = translate_answer('en', incoming_msg)
     else:
         question = incoming_msg
 

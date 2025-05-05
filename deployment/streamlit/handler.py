@@ -121,10 +121,9 @@ def translate_list(question, list_of_answers):
         return list_of_answers
 
     detected_lang_question = detect(question)
-    detected_lang_answer = detect(list_of_answers[0])
 
     translated = []
-    if detected_lang_question != detected_lang_answer:
+    if detected_lang_question != 'en':
         for a in list_of_answers:
             answer = GoogleTranslator(source='auto', target=detected_lang_question).translate(a)
             translated.append(answer)
