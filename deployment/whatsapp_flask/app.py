@@ -26,8 +26,6 @@ def whatsapp_webhook():
     last_qna = result["last_qna"]
 
     resp = MessagingResponse()
-    # resp.message(str(result))
-
     user = check_user(user_id)
     new_user = user['status'] == 'new'
 
@@ -37,10 +35,8 @@ def whatsapp_webhook():
 
     if result["is_feedback"]:
         if not last_qna["question"]:
-            # reply = 'IS FEEDBACK, but no question found'
             reply = "Sorry, please ask a question first before providing feedback."
         else:
-            # reply = 'IS FEEDBACK, question found'
             reply = save_feedback(result["feedback_obj"], last_qna)
 
         resp.message(reply)
@@ -68,5 +64,52 @@ def whatsapp_webhook():
         Thread(target=process_response).start()
         return str(resp)
 
+@app.route("/sandbox", methods=["POST"])
+def whatsapp_webhook_sandbox():
+    incoming_msg = request.values.get("Body", "").strip()
+    user_id = request.values.get("From", "").strip()
+
+    result = check_question_feedback(incoming_msg, user_id)
+    last_qna = result["last_qna"]
+
+    resp = MessagingResponse()
+    user = check_user(user_id)
+    new_user = user['status'] == 'new'
+
+    if new_user:
+        print(f"########### Send initial greetings: {user_id}")
+        resp.message(greeting)
+
+    if result["is_feedback"]:
+        if not last_qna["question"]:
+            reply = "Sorry, please ask a question first before providing feedback."
+        else:
+            reply = save_feedback(result["feedback_obj"], last_qna)
+
+        resp.message(reply)
+        return str(resp)
+    else:
+        if len(incoming_msg) > 4:
+            # send an immediate placeholder response
+            if not last_qna["question"]:
+                resp.message(f"⏳ let me check that for you...{last_qna}")
+
+        def process_response():
+            print(f"########### Running process_response for user: {user_id}")
+            reply = ask(incoming_msg, user_id)
+            if not reply:
+                reply = "Sorry, I missed that - can you please try asking again?"
+        
+            # send the actual message via Twilio API
+            client = Client(os.getenv("TWILIO_SID"), os.getenv("TWILIO_AUTH_TOKEN"))
+            client.messages.create(
+                from_=os.getenv("TWILIO_PHONE_NUMBER_SANDBOX"),
+                to=user_id,
+                body=reply
+            )
+
+        Thread(target=process_response).start()
+        return str(resp)
+        
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
