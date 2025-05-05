@@ -5,7 +5,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")
 
 from flask import Flask, request, jsonify
 from deployment.streamlit.model import ask
-from deployment.streamlit.handler import save_feedback, starts_with_question_keyword, check_question_feedback, check_user, split_message, translate_answer, detect_language
+from deployment.streamlit.handler import save_feedback, starts_with_question_keyword, check_question_feedback, check_user, split_message, translate_text
 from deployment.streamlit.text import greeting
 from twilio.twiml.messaging_response import MessagingResponse
 from twilio.rest import Client
@@ -35,12 +35,12 @@ def whatsapp_webhook():
 
     if new_user:
         print(f"########### Send initial greetings: {user_id}")
-        translated_greeting = GoogleTranslator(source='auto', target=detected_lang_question).translate(greeting)
+        translated_greeting = translate_text(greeting)
         resp.message(translated_greeting)
 
     if len(incoming_msg) > 500:
         exceed_length_resp = "Sorry, your message is too long. Please shorten it to less than 500 characters."
-        reply = GoogleTranslator(source='auto', target=detected_lang_question).translate(exceed_length_resp)
+        reply = translate_text(exceed_length_resp)
         resp.message(reply)
         return str(resp)
     
@@ -56,14 +56,14 @@ def whatsapp_webhook():
         if len(incoming_msg) > 4:
             # send an immediate placeholder response
             if not last_qna["question"]:
-                message = GoogleTranslator(source='auto', target=detected_lang_question).translate('let me check that for you...')
+                message = translate_text('let me check that for you...')
                 resp.message(f"⏳ {message}")
 
         def process_response():
             print(f"########### Running process_response for user: {user_id}")
             reply = ask(incoming_msg, user_id)
             if not reply:
-                reply = GoogleTranslator(source='auto', target=detected_lang_question).translate("Sorry, I missed that - can you please try asking again?")
+                reply = translate_text("Sorry, I missed that - can you please try asking again?")
         
             # send the actual message via Twilio API
             client = Client(os.getenv("TWILIO_SID"), os.getenv("TWILIO_AUTH_TOKEN"))
