@@ -5,7 +5,7 @@ from langchain_mongodb import MongoDBAtlasVectorSearch
 from langchain_openai import OpenAIEmbeddings, ChatOpenAI
 from langchain.chains import ConversationalRetrievalChain
 from langchain.memory import ConversationBufferMemory
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from .prompt import PROFESSIONAL_PROMPT
 from .handler import is_feedback_message, extract_feedback_content, OPENAI_KEY, collection, user_collection, store_last_qna
 
@@ -20,15 +20,32 @@ def init_memory():
     return ConversationBufferMemory(memory_key="chat_history", return_messages=True, output_key='answer')
 
 memory_store = {}
+EXPIRY_HOURS = 24
 
 def get_user_memory(user_id: str) -> ConversationBufferMemory:
-    if user_id not in memory_store:
-        memory_store[user_id] = ConversationBufferMemory(
-            memory_key="chat_history",
-            return_messages=True,
-            output_key="answer"
-        )
-    return memory_store[user_id]
+    now = datetime.now(timezone.utc)
+    user_data = memory_store.get(user_id)
+
+    if user_data:
+        last_active = user_data.get("last_active")
+
+        if last_active and now - last_active < timedelta(hours=EXPIRY_HOURS):
+            # still active
+            user_data["last_active"] = now
+            return user_data["memory"]
+        
+    conversation_memory = ConversationBufferMemory(
+        memory_key="chat_history",
+        return_messages=True,
+        output_key="answer"
+    )
+
+    memory_store[user_id] = {
+        "memory": conversation_memory,
+        "last_active": now
+    }
+
+    return memory_store[user_id]['memory']
 
 # Vector Store Configuration
 vector_store = MongoDBAtlasVectorSearch(
