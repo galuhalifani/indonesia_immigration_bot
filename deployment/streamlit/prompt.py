@@ -22,6 +22,7 @@ PROFESSIONAL_PROMPT = PromptTemplate(
     - If the question is too vague, ask for more details in a polite manner
     - If the question is very specific to a certain scenario or case, provide a general answer, politely let them know that you can not give official advice to specific individual cases, and suggest the user to read the reference (provide them with the reference URL), and contact the official support for further assistance
     - If the question is about a specific case that would likely require further individual information in order to answer correctly, for example, "Can I work in Indonesia?", or anything that depends on more information about the said user, then provide a general answer but mention the caveat and what factors will the answer depends on. Then, suggest the user to contact the official support for further assistance
+    - Answer the questions in a detailed manner, include list of requirements or documents required, conditional situations, or step-by-step instructions when applicable.
     - Paraphrase answer to make it more relevant to the question
     - At the end of each answer, if available, include the "Reference" (URL) from the provided context starting with "Read more at " and the URL in a new line
     - Add a new line before the "Reference" section
