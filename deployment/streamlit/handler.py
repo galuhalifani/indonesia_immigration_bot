@@ -52,7 +52,7 @@ def extract_feedback_content(raw_message: str) -> dict:
         
     return {"feedback": None, "comment": cleaned}
 
-def save_feedback(feedback_obj: dict, last_qna: dict) -> str:
+def save_feedback(feedback_obj: dict, last_qna: dict):
     feedback_data = {
         "feedback": feedback_obj["feedback"],
         "comment": feedback_obj["comment"],
