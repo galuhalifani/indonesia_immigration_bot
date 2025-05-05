@@ -37,9 +37,9 @@ def whatsapp_webhook():
     resp = MessagingResponse()
 
     if new_user:
-        greeting = translate_answer(incoming_msg, greeting)
+        initial_greetings = translate_answer(incoming_msg, greeting)
         print(f"########### Send initial greetings: {user_id}")
-        resp.message(greeting)
+        resp.message(initial_greetings)
 
     if result["is_feedback"]:
         if not last_qna["question"]:
