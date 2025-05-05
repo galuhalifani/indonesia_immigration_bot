@@ -30,6 +30,7 @@ def whatsapp_webhook():
     resp = MessagingResponse()
 
     if new_user:
+        greeting = translate_answer(incoming_msg, greeting)
         print(f"########### Send initial greetings: {user_id}")
         resp.message(greeting)
 
@@ -39,6 +40,7 @@ def whatsapp_webhook():
         else:
             reply = save_feedback(result["feedback_obj"], last_qna)
         
+        reply = translate_answer(incoming_msg, reply)
         print(f"########### Send feedback acknowledgement: {user_id}")
         return resp.message(reply)
     
@@ -47,7 +49,8 @@ def whatsapp_webhook():
         # send an immediate placeholder response
 
         if not last_qna["question"] and is_question:
-            resp.message("⏳ let me check that for you...")
+            placeholder = translate_answer(incoming_msg, "⏳ let me check that for you...")
+            resp.message(placeholder)
 
         def process_response():
             print(f"########### Running process_response for user: {user_id}")
