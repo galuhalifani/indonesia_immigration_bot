@@ -4,6 +4,8 @@ from pymongo import MongoClient
 import os
 from dotenv import load_dotenv
 from .text import question_keywords
+from langdetect import detect
+from deep_translator import GoogleTranslator
 
 # Load Environment Variables
 load_dotenv()
@@ -29,7 +31,7 @@ else:
     collection = None
     feedback_collection = None
 
-FEEDBACK_KEYWORDS = ['Feedback', 'feedback', 'Feedback', 'Feedback?', 'feedback?', 'feedback!', 'not helpful', 'not helpful', 'not helpful?', 'not helpful?', 'not helpful!', 'helpful', 'helpful?', 'helpful!', "'helpful'", "'not helpful", "'feedback'"]
+FEEDBACK_KEYWORDS = ['Feedback', 'feedback', 'Feedback', 'Feedback?', 'feedback?', 'feedback!', 'not helpful', 'not helpful', 'not helpful?', 'not helpful?', 'not helpful!', 'helpful', 'helpful?', 'helpful!', "'helpful'", "'not helpful", "'feedback'", "membantu", "tidak membantu"]
 
 def normalize(text):
     return re.sub(r'[^\w\s]', '', text).strip().lower()
@@ -99,3 +101,13 @@ def check_user(user_id):
 def starts_with_question_keyword(query: str) -> bool:
     query_lower = query.lower().strip()
     return any(query_lower.startswith(keyword) for keyword in question_keywords)
+
+def translate_answer(question, answer):
+    detected_lang_question = detect(question)
+    detected_lang_answer = detect(answer)
+
+    if detected_lang_question != detected_lang_answer:
+        translated = GoogleTranslator(source='auto', target=detected_lang_question).translate(answer)
+        return translated
+    else:
+        return answer

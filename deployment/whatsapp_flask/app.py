@@ -5,7 +5,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")
 
 from flask import Flask, request, jsonify
 from deployment.streamlit.model import ask
-from deployment.streamlit.handler import save_feedback, starts_with_question_keyword, check_question_feedback, check_user
+from deployment.streamlit.handler import save_feedback, starts_with_question_keyword, check_question_feedback, check_user, translate_answer
 from deployment.streamlit.text import greeting
 from twilio.twiml.messaging_response import MessagingResponse
 from twilio.rest import Client
@@ -51,10 +51,11 @@ def whatsapp_webhook():
 
         def process_response():
             print(f"########### Running process_response for user: {user_id}")
-            reply = ask(incoming_msg, user_id)
-            if not reply:
-                reply = "Sorry, I missed that - can you please try asking again?"
+            answer = ask(incoming_msg, user_id)
+            if not answer:
+                answer = "Sorry, I missed that - can you please try asking again?"
         
+            reply = translate_answer(incoming_msg, answer)
             # Send the actual message via Twilio API
             client = Client(os.getenv("TWILIO_SID"), os.getenv("TWILIO_AUTH_TOKEN"))
             client.messages.create(
