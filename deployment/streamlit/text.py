@@ -12,7 +12,7 @@ feedback_instr = (
 greeting = (
     "👋 Hi! I am Instant -- Indonesian Immigration Assistant Bot 🇮🇩\n\n"
     "I am not affiliated or associated in any way to Indonesian Immigration Office.\n\n"
-    "All information is based on publicly available information in Indonesian Immigration Office official website at https://www.imigrasi.go.id\n\n"
+    "All information is based on publicly available information in Indonesian Immigration Office official website at imigrasi.go.id \n\n"
     "By engaging in this conversation, you acknowledge that any information provided by the Instant Chatbot is for general informational purposes only and does not constitute professional legal advice or services. You agree not to hold Instant Chatbot liable for any consequences, whether direct or indirect, arising from the use of this information.\n\n"
     "You can ask about Indonesian Passport or M-Paspor, Visa, Stay permit, and more.\n\n"
     "You can ask in English or in Bahasa Indonesia."
