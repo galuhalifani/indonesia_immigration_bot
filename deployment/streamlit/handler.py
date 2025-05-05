@@ -144,10 +144,9 @@ def detect_language(text):
     except Exception as e:
         return "en"
 
-def translate_text(text):
+def translate_text(lang, text):
     supported_languages = ['en', 'id', 'fr', 'de', 'th', 'es', 'it', 'pt', 'ja', 'ko', 'zh-cn', 'zh-tw', 'ru']
     try:
-        lang = detect(text)
         if lang in supported_languages:
             translated = GoogleTranslator(source='auto', target=lang).translate(text)
             return f"{lang} {translated}"
