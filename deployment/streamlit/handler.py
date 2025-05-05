@@ -138,3 +138,6 @@ def detect_language(text):
         return detect(text)
     except Exception as e:
         return "en"
+
+def split_message(text, max_length=1530):
+    return [text[i:i+max_length] for i in range(0, len(text), max_length)]
