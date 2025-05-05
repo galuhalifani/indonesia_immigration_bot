@@ -4,6 +4,8 @@ from pymongo import MongoClient
 import os
 from dotenv import load_dotenv
 from .text import question_keywords
+from langdetect import detect
+from deep_translator import GoogleTranslator
 
 # Load Environment Variables
 load_dotenv()
@@ -100,4 +102,39 @@ def check_user(user_id):
 
 def starts_with_question_keyword(query: str) -> bool:
     query_lower = query.lower().strip()
-    return any(query_lower.startswith(keyword) for keyword in question_keywords)
+    question_keywords_translated = translate_list(query, question_keywords) if detect_language(query) != 'en' else question_keywords        
+    return any(query_lower.startswith(keyword) for keyword in question_keywords_translated)
+
+def translate_answer(question, answer):
+    if len(question) < 4:
+        return answer
+
+    detected_lang_question = detect(question)
+    detected_lang_answer = detect(answer)
+
+    if detected_lang_question != detected_lang_answer:
+        translated = GoogleTranslator(source='auto', target=detected_lang_question).translate(answer)
+        return translated
+    else:
+        return answer
+
+def translate_list(question, list_of_answers):
+    if len(question) < 3:
+        return list_of_answers
+
+    detected_lang_question = detect(question)
+
+    translated = []
+    if detected_lang_question != 'en':
+        for a in list_of_answers:
+            answer = GoogleTranslator(source='auto', target=detected_lang_question).translate(a)
+            translated.append(answer)
+        return translated
+    else:
+        return list_of_answers
+    
+def detect_language(text):
+    try:
+        return detect(text)
+    except Exception as e:
+        return "en"
