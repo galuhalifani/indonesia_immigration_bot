@@ -33,6 +33,11 @@ def whatsapp_webhook():
         print(f"########### Send initial greetings: {user_id}")
         resp.message(greeting)
 
+    if len(incoming_msg) > 500:
+        reply = "Sorry, your message is too long. Please shorten it to less than 500 characters."
+        resp.message(reply)
+        return str(resp)
+    
     if result["is_feedback"]:
         if not last_qna["question"]:
             reply = "Sorry, please ask a question first before providing feedback."

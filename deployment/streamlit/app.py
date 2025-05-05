@@ -16,7 +16,7 @@ from streamlit_option_menu import option_menu
 import os
 import re
 from model import ask
-from deployment.streamlit.handler import save_feedback, check_question_feedback
+from handler import save_feedback, translate_answer, check_question_feedback
 from text import feedback_instr, no_affiliation, description, no_replacement_for_official_advice, source_of_answer_short, source_of_answer
 
 primary_color = "#ffffff"
@@ -223,10 +223,12 @@ if selected == "Chatbot":
             last_question = is_feedback['last_qna']['question']
 
             if not last_question:
+                resp = "Sorry, you have not asked a question, or the session has been reset. Please ask a question first before providing feedback."
+                mssg = translate_answer(query, resp)
                 st.session_state.messages.append({
                     "role": "assistant",
                     "type": "warning",
-                    "content": "Sorry, you have not asked a question, or the session has been reset. Please ask a question first before providing feedback."
+                    "content": mssg
                 })
                 st.rerun()
             else:
@@ -257,6 +259,8 @@ elif selected == "About":
         <strong>Disclaimer:</strong> {no_affiliation}
         <br><br>
         <strong>Source of Information:</strong> {source_of_answer}
+        <br><br>
+        <strong>GitHub Repository:</strong> <a href="https://github.com/galuhalifani/indonesia_immigration_bot" target="_blank">Indonesia Immigration Bot</a>
     """, unsafe_allow_html=True)
 
 elif selected == "Contact":
