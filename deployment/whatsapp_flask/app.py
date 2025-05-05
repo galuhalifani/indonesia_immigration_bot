@@ -41,7 +41,8 @@ def whatsapp_webhook():
             # reply = "Sorry, please ask a question first before providing feedback."
         else:
             resp.message('IS FEEDBACK, question found')
-            # reply = save_feedback(result["feedback_obj"], last_qna)
+            reply = save_feedback(result["feedback_obj"], last_qna)
+            resp.message(reply)
 
         # resp = MessagingResponse()
         # resp.message(reply)
