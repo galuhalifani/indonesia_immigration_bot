@@ -127,9 +127,9 @@ def check_question_feedback(query, user_id="anonymous"):
     else:
         return {"is_feedback": False, "query": query, "feedback_obj": feedback_obj, "last_qna": last_qna}
     
-def check_user(user_collection, user_id):
-    user = user_collection.find_one({"user_id": user_id})
-    if user:
+def check_user(user_id):
+    user_details = user_collection.find_one({"user_id": user_id})
+    if user_details:
         return {"status": "existing", "user_id": user_id}
     else:
         user_collection.insert_one({"user_id": user_id, "timestamp": datetime.now(timezone.utc).isoformat()})
