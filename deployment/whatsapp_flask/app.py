@@ -22,14 +22,14 @@ def whatsapp_webhook():
     incoming_msg = request.values.get("Body", "").strip()
     user_id = request.values.get("From", "").strip()
 
-    lang = detect_language(incoming_msg)
+    # lang = detect_language(incoming_msg)
     
-    if lang != "en" and lang != "id":
-        question = translate_answer('en', incoming_msg)
-    else:
-        question = incoming_msg
+    # if lang != "en" and lang != "id":
+    #     question = translate_answer('en', incoming_msg)
+    # else:
+    #     question = incoming_msg
 
-    result = check_question_feedback(question, user_id)
+    result = check_question_feedback(incoming_msg, user_id)
     last_qna = result["last_qna"]
 
     user = check_user(user_id)
@@ -37,9 +37,9 @@ def whatsapp_webhook():
     resp = MessagingResponse()
 
     if new_user:
-        initial_greetings = translate_answer(incoming_msg, greeting)
+        # initial_greetings = translate_answer(incoming_msg, greeting)
         print(f"########### Send initial greetings: {user_id}")
-        resp.message(initial_greetings)
+        resp.message(greeting)
 
     if result["is_feedback"]:
         if not last_qna["question"]:
@@ -47,25 +47,25 @@ def whatsapp_webhook():
         else:
             reply = save_feedback(result["feedback_obj"], last_qna)
         
-        reply = translate_answer(incoming_msg, reply)
+        # reply = translate_answer(incoming_msg, reply)
         print(f"########### Send feedback acknowledgement: {user_id}")
         return resp.message(reply)
     
     else:
-        is_question = starts_with_question_keyword(question)
+        is_question = starts_with_question_keyword(incoming_msg)
         # send an immediate placeholder response
 
         if not last_qna["question"] and is_question:
-            placeholder = translate_answer(incoming_msg, "⏳ let me check that for you...")
-            resp.message(placeholder)
+            # placeholder = translate_answer(incoming_msg, "⏳ let me check that for you...")
+            resp.message("⏳ let me check that for you...")
 
         def process_response():
             print(f"########### Running process_response for user: {user_id}")
-            answer = ask(question, user_id)
-            if not answer:
-                answer = "Sorry, I missed that - can you please try asking again?"
+            reply = ask(incoming_msg, user_id)
+            if not reply:
+                reply = "Sorry, I missed that - can you please try asking again?"
         
-            reply = translate_answer(incoming_msg, answer)
+            # reply = translate_answer(incoming_msg, answer)
             # Send the actual message via Twilio API
             client = Client(os.getenv("TWILIO_SID"), os.getenv("TWILIO_AUTH_TOKEN"))
             client.messages.create(

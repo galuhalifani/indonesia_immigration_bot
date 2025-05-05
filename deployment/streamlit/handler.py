@@ -38,19 +38,19 @@ def normalize(text):
 
 def is_feedback_message(text: str) -> bool:
     cleaned = normalize(text)
-    all_feedback_keywords = translate_list(text, FEEDBACK_KEYWORDS)
-    return any(cleaned.startswith(keyword) for keyword in all_feedback_keywords)
+    # all_feedback_keywords = translate_list(text, FEEDBACK_KEYWORDS)
+    return any(cleaned.startswith(keyword) for keyword in FEEDBACK_KEYWORDS)
 
 def extract_feedback_content(raw_message: str) -> dict:
     cleaned = normalize(raw_message)
 
-    feedback = GoogleTranslator(source='auto', target='en').translate(cleaned) if detect(cleaned) != 'en' else cleaned
+    # feedback = GoogleTranslator(source='auto', target='en').translate(cleaned) if detect(cleaned) != 'en' else cleaned
     for keyword in FEEDBACK_KEYWORDS:
-        if feedback.startswith(keyword):
-            remaining = feedback[len(keyword):].strip()
+        if cleaned.startswith(keyword):
+            remaining = cleaned[len(keyword):].strip()
             return {"feedback": keyword, "comment": remaining}
         
-    return {"feedback": None, "comment": feedback}
+    return {"feedback": None, "comment": cleaned}
 
 def save_feedback(feedback_obj: dict, last_qna: dict) -> str:
     feedback_data = {
