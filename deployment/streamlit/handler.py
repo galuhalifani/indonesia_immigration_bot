@@ -104,7 +104,7 @@ def starts_with_question_keyword(query: str) -> bool:
     return any(query_lower.startswith(keyword) for keyword in question_keywords)
 
 def translate_answer(question, answer):
-    if len(question) < 5:
+    if len(question) < 4:
         return answer
 
     detected_lang_question = detect(question)
