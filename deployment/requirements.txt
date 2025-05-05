@@ -9,3 +9,5 @@ python-dotenv
 openai
 datetime
 flask
+deep-translator
+langdetect

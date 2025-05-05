@@ -10,3 +10,5 @@ openai
 datetime
 flask
 twilio
+deep-translator
+langdetect
