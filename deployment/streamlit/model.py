@@ -20,7 +20,7 @@ def init_memory():
     return ConversationBufferMemory(memory_key="chat_history", return_messages=True, output_key='answer')
 
 memory_store = {}
-EXPIRY_HOURS = 24
+EXPIRY_HOURS = 3
 
 def get_user_memory(user_id: str) -> ConversationBufferMemory:
     now = datetime.now(timezone.utc)

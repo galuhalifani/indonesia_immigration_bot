@@ -22,13 +22,6 @@ def whatsapp_webhook():
     incoming_msg = request.values.get("Body", "").strip()
     user_id = request.values.get("From", "").strip()
 
-    # lang = detect_language(incoming_msg)
-    
-    # if lang != "en" and lang != "id":
-    #     question = translate_answer('en', incoming_msg)
-    # else:
-    #     question = incoming_msg
-
     result = check_question_feedback(incoming_msg, user_id)
     last_qna = result["last_qna"]
 
@@ -37,7 +30,6 @@ def whatsapp_webhook():
     resp = MessagingResponse()
 
     if new_user:
-        # initial_greetings = translate_answer(incoming_msg, greeting)
         print(f"########### Send initial greetings: {user_id}")
         resp.message(greeting)
 
@@ -47,16 +39,13 @@ def whatsapp_webhook():
         else:
             reply = save_feedback(result["feedback_obj"], last_qna)
         
-        # reply = translate_answer(incoming_msg, reply)
         print(f"########### Send feedback acknowledgement: {user_id}")
         return resp.message(reply)
     
     else:
         is_question = starts_with_question_keyword(incoming_msg)
         # send an immediate placeholder response
-
         if not last_qna["question"] and is_question:
-            # placeholder = translate_answer(incoming_msg, "⏳ let me check that for you...")
             resp.message("⏳ let me check that for you...")
 
         def process_response():
@@ -65,8 +54,7 @@ def whatsapp_webhook():
             if not reply:
                 reply = "Sorry, I missed that - can you please try asking again?"
         
-            # reply = translate_answer(incoming_msg, answer)
-            # Send the actual message via Twilio API
+            # send the actual message via Twilio API
             client = Client(os.getenv("TWILIO_SID"), os.getenv("TWILIO_AUTH_TOKEN"))
             client.messages.create(
                 from_=os.getenv("TWILIO_PHONE_NUMBER"),
