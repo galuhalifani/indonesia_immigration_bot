@@ -27,7 +27,7 @@ def whatsapp_webhook():
 
     user = check_user(user_id)
     new_user = user['status'] == 'new'
-    
+
     if new_user:
         resp = MessagingResponse()
         resp.message(greeting)
@@ -44,15 +44,15 @@ def whatsapp_webhook():
         is_question = starts_with_question_keyword(incoming_msg)
         # send an immediate placeholder response
         if not last_qna["question"] and is_question:
-            resp = MessagingResponse()
-            resp.message("⏳ let me check that for you...")
+            reply = "⏳ let me check that for you..."
 
         def process_response():
+            print('######### Asking.........')
             reply = ask(incoming_msg, user_id)
             if not reply:
                 reply = "Sorry, I missed that - can you please try asking again?"
         
-        # Send the actual message via Twilio API
+            # Send the actual message via Twilio API
             client = Client(os.getenv("TWILIO_SID"), os.getenv("TWILIO_AUTH_TOKEN"))
             client.messages.create(
                 from_=os.getenv("TWILIO_PHONE_NUMBER"),
@@ -60,8 +60,10 @@ def whatsapp_webhook():
                 body=reply
             )
 
+        print('######### Asking.........')
         Thread(target=process_response).start()
-        return str(resp)
+        resp = MessagingResponse()
+        return resp.message(reply)
 
 @app.route("/ask", methods=["POST"])
 def handle_question():
