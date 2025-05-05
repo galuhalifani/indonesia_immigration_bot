@@ -25,7 +25,7 @@ def whatsapp_webhook():
     lang = detect_language(incoming_msg)
     
     if lang != "en" and lang != "id":
-        question = translate_answer('en', incoming_msg)
+        question = translate_answer('id', incoming_msg)
     else:
         question = incoming_msg
 
@@ -52,7 +52,7 @@ def whatsapp_webhook():
         return resp.message(reply)
     
     else:
-        is_question = starts_with_question_keyword(incoming_msg)
+        is_question = starts_with_question_keyword(question)
         # send an immediate placeholder response
 
         if not last_qna["question"] and is_question:
