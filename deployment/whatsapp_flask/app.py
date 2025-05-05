@@ -4,8 +4,9 @@ import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 
 from flask import Flask, request, jsonify
-from deployment.streamlit.model import ask, check_question_feedback
+from deployment.streamlit.model import ask, check_question_feedback, check_user
 from deployment.streamlit.feedback_handler import save_feedback
+from deployment.streamlit.text import greeting
 from twilio.twiml.messaging_response import MessagingResponse
 from twilio.rest import Client
 from threading import Thread
@@ -22,36 +23,41 @@ def whatsapp_webhook():
     user_id = request.values.get("From", "").strip()
 
     result = check_question_feedback(incoming_msg, user_id)
+    last_qna = result["last_qna"]
+
+    user = check_user(user_id)
+    if user['status'] == 'new':
+        resp.message(greeting)
 
     if result["is_feedback"]:
-        last_qna = result["last_qna"]
         if not last_qna["question"]:
             reply = "Sorry, please ask a question first before providing feedback."
         else:
             reply = save_feedback(result["feedback_obj"], last_qna)
         
         resp = MessagingResponse()
-        resp.message(reply)
+        return resp.message(reply)
     else:
         # send an immediate placeholder response
-        resp = MessagingResponse()
-        resp.message("⏳ let me check that for you...")
+        if not last_qna["question"]:
+            resp = MessagingResponse()
+            resp.message("⏳ let me check that for you...")
 
-    def process_response():
-        reply = ask(incoming_msg, user_id)
-        if not reply:
-            reply = "Sorry, I missed that - can you please try asking again?"
-    
-     # Send the actual message via Twilio API
-        client = Client(os.getenv("TWILIO_SID"), os.getenv("TWILIO_AUTH_TOKEN"))
-        client.messages.create(
-            from_=os.getenv("TWILIO_PHONE_NUMBER"),
-            to=user_id,
-            body=reply
-        )
+        def process_response():
+            reply = ask(incoming_msg, user_id)
+            if not reply:
+                reply = "Sorry, I missed that - can you please try asking again?"
+        
+        # Send the actual message via Twilio API
+            client = Client(os.getenv("TWILIO_SID"), os.getenv("TWILIO_AUTH_TOKEN"))
+            client.messages.create(
+                from_=os.getenv("TWILIO_PHONE_NUMBER"),
+                to=user_id,
+                body=reply
+            )
 
-    Thread(target=process_response).start()
-    return str(resp)
+        Thread(target=process_response).start()
+        return str(resp)
 
 @app.route("/ask", methods=["POST"])
 def handle_question():

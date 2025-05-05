@@ -5,8 +5,9 @@ from langchain_mongodb import MongoDBAtlasVectorSearch
 from langchain_openai import OpenAIEmbeddings, ChatOpenAI
 from langchain.chains import ConversationalRetrievalChain
 from langchain.memory import ConversationBufferMemory
+from datetime import datetime, timezone
 from .prompt import PROFESSIONAL_PROMPT
-from .feedback_handler import is_feedback_message, extract_feedback_content, OPENAI_KEY, collection
+from .feedback_handler import is_feedback_message, extract_feedback_content, OPENAI_KEY, collection, user_collection
 
 # Initialize Embeddings
 embeddings = OpenAIEmbeddings(
@@ -125,3 +126,11 @@ def check_question_feedback(query, user_id="anonymous"):
         return {"is_feedback": True, "query": query, "feedback_obj": feedback_obj, "last_qna": last_qna}
     else:
         return {"is_feedback": False, "query": query, "feedback_obj": feedback_obj, "last_qna": last_qna}
+    
+def check_user(user_collection, user_id):
+    user = user_collection.find_one({"user_id": user_id})
+    if user:
+        return {"status": "existing", "user_id": user_id}
+    else:
+        user_collection.insert_one({"user_id": user_id, "timestamp": datetime.now(timezone.utc).isoformat()})
+        return {"status": "new", "user_id": user_id}

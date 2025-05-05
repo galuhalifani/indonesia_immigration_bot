@@ -23,6 +23,7 @@ if client:
     db = client['instant_bot']
     collection = db['instant']
     feedback_collection = db['feedback']
+    user_collection = db['user']
 else:
     collection = None
     feedback_collection = None

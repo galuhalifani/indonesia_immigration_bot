@@ -9,3 +9,10 @@ feedback_instr = (
     "For example: <i>helpful: accurate thank you.</i> or "
     "<i>not helpful: too vague.</i>"
 )
+greeting = (
+    "👋 Hi! I am Instant -- Indonesian Immigration Assistant Bot 🇮🇩\n"
+    "I am not affiliated or associated in any way to Indonesian Immigration Office\n"
+    "All information is based on publicly available information in Indonesian Immigration Office official website at https://www.imigrasi.go.id\n"
+    "You can ask about Indonesian Passport or M-Paspor, Visa, Stay permit, and more.\n"
+    "You can ask in English or in Bahasa Indonesian."
+)
