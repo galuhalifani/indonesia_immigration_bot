@@ -44,12 +44,13 @@ def is_feedback_message(text: str) -> bool:
 def extract_feedback_content(raw_message: str) -> dict:
     cleaned = normalize(raw_message)
 
+    feedback = GoogleTranslator(source='auto', target='en').translate(cleaned) if detect(cleaned) != 'en' else cleaned
     for keyword in FEEDBACK_KEYWORDS:
-        if cleaned.startswith(keyword):
-            remaining = cleaned[len(keyword):].strip()
+        if feedback.startswith(keyword):
+            remaining = feedback[len(keyword):].strip()
             return {"feedback": keyword, "comment": remaining}
         
-    return {"feedback": None, "comment": raw_message}
+    return {"feedback": None, "comment": feedback}
 
 def save_feedback(feedback_obj: dict, last_qna: dict) -> str:
     feedback_data = {
