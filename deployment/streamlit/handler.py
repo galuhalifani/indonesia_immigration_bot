@@ -38,7 +38,8 @@ def normalize(text):
 
 def is_feedback_message(text: str) -> bool:
     cleaned = normalize(text)
-    return any(cleaned.startswith(keyword) for keyword in FEEDBACK_KEYWORDS)
+    all_feedback_keywords = translate_list(text, FEEDBACK_KEYWORDS)
+    return any(cleaned.startswith(keyword) for keyword in all_feedback_keywords)
 
 def extract_feedback_content(raw_message: str) -> dict:
     cleaned = normalize(raw_message)
@@ -114,3 +115,25 @@ def translate_answer(question, answer):
         return translated
     else:
         return answer
+
+def translate_list(question, list_of_answers):
+    if len(question) < 3:
+        return list_of_answers
+
+    detected_lang_question = detect(question)
+    detected_lang_answer = detect(list_of_answers[0])
+
+    translated = []
+    if detected_lang_question != detected_lang_answer:
+        for a in list_of_answers:
+            answer = GoogleTranslator(source='auto', target=detected_lang_question).translate(a)
+            translated.append(answer)
+        return translated
+    else:
+        return list_of_answers
+    
+def detect_language(text):
+    try:
+        return detect(text)
+    except Exception as e:
+        return "en"
