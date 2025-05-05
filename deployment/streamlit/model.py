@@ -29,8 +29,9 @@ def get_user_memory(user_id: str) -> ConversationBufferMemory:
     if user_data:
         last_active = user_data.get("last_active")
 
-        if last_active and now - last_active < timedelta(hours=EXPIRY_HOURS):
-            # still active
+        still_active = now - last_active < timedelta(hours=EXPIRY_HOURS)
+
+        if last_active and still_active:
             user_data["last_active"] = now
             return user_data["memory"]
         
@@ -66,8 +67,10 @@ llm = ChatOpenAI(
 # @st.cache_resource
 qa_chains = {}
 
-def create_conversational_chain(user_id: None):
-    memory = get_user_memory(user_id) if user_id else init_memory()
+def create_conversational_chain(user_id = 'anonymous'):
+    print(f"create conversational_chain for {user_id}", flush=True)
+    is_not_anonymous = user_id != "anonymous"
+    memory = get_user_memory(user_id) if is_not_anonymous else init_memory()
 
     retriever = vector_store.as_retriever(
         search_type="similarity",
