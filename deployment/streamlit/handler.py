@@ -149,7 +149,7 @@ def translate_text(lang, text):
     try:
         if lang in supported_languages:
             translated = GoogleTranslator(source='auto', target=lang).translate(text)
-            return f"{lang} {translated}"
+            return translated
         else:
             return text
     except Exception as e:
