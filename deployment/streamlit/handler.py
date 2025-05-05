@@ -134,8 +134,13 @@ def translate_list(question, list_of_answers):
         return list_of_answers
     
 def detect_language(text):
+    supported_languages = ['en', 'id', 'fr', 'de', 'th', 'es', 'it', 'pt', 'ja', 'ko', 'zh-cn', 'zh-tw']
     try:
-        return detect(text)
+        lang = detect(text)
+        if lang in supported_languages:
+            return lang 
+        else:
+            return "en"
     except Exception as e:
         return "en"
 
