@@ -31,8 +31,6 @@ def whatsapp_webhook():
     user = check_user(user_id)
     new_user = user['status'] == 'new'
 
-    detected_lang_question = detect_language(incoming_msg)
-
     if new_user:
         print(f"########### Send initial greetings: {user_id}")
         translated_greeting = translate_text(greeting)
