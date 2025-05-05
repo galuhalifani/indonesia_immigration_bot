@@ -19,9 +19,5 @@ greeting = (
 )
 
 question_keywords = [
-    "what is", "what are", "which", "when", "where", "whom", "whose", 
-    "how", "how to", "how do i", "why", "how come", "how much", "how can",
-    "how many", "is", "are", "do", "does", "can", "should", 
-    "would", "will", "could", "shall", "should i", "what if", 
-    "do you think", "how long"
+    "what is", "what are", "which", "when", "where", "how", "why", "is", "are", "does", "can", "should", "would", "will", "could", "shall", "what if", "do you think"
 ]

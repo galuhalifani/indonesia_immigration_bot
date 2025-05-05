@@ -25,12 +25,15 @@ def whatsapp_webhook():
     result = check_question_feedback(incoming_msg, user_id)
     last_qna = result["last_qna"]
 
+    resp = MessagingResponse()
+    resp.message(str(result))
+
     user = check_user(user_id)
     new_user = user['status'] == 'new'
-    resp = MessagingResponse()
 
     if new_user:
         print(f"########### Send initial greetings: {user_id}")
+        resp = MessagingResponse()
         resp.message(greeting)
 
     if result["is_feedback"]:
@@ -38,15 +41,14 @@ def whatsapp_webhook():
             reply = "Sorry, please ask a question first before providing feedback."
         else:
             reply = save_feedback(result["feedback_obj"], last_qna)
-        
-        print(f"########### Send feedback acknowledgement: {user_id}")
-        return resp.message(reply)
-    
+
+        resp = MessagingResponse()
+        return resp.message(str(reply))
     else:
-        is_question = starts_with_question_keyword(incoming_msg)
-        # send an immediate placeholder response
-        if not last_qna["question"] and is_question:
-            resp.message("⏳ let me check that for you...")
+        if len(incoming_msg) > 4:
+            # send an immediate placeholder response
+            if not last_qna["question"]:
+                resp.message(f"⏳ let me check that for you...{last_qna}")
 
         def process_response():
             print(f"########### Running process_response for user: {user_id}")
