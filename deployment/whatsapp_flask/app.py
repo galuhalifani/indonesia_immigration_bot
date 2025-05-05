@@ -26,7 +26,7 @@ def whatsapp_webhook():
     last_qna = result["last_qna"]
 
     resp = MessagingResponse()
-    resp.message(str(result))
+    # resp.message(str(result))
 
     user = check_user(user_id)
     new_user = user['status'] == 'new'
@@ -37,15 +37,13 @@ def whatsapp_webhook():
 
     if result["is_feedback"]:
         if not last_qna["question"]:
-            resp.message('IS FEEDBACK, but no question found')
-            # reply = "Sorry, please ask a question first before providing feedback."
+            # reply = 'IS FEEDBACK, but no question found'
+            reply = "Sorry, please ask a question first before providing feedback."
         else:
-            resp.message('IS FEEDBACK, question found')
+            # reply = 'IS FEEDBACK, question found'
             reply = save_feedback(result["feedback_obj"], last_qna)
-            resp.message(reply)
 
-        # resp = MessagingResponse()
-        # resp.message(reply)
+        resp.message(reply)
         return str(resp)
     else:
         if len(incoming_msg) > 4:
