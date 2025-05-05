@@ -45,7 +45,7 @@ def whatsapp_webhook():
         if len(incoming_msg) > 4:
             # send an immediate placeholder response
             if not last_qna["question"]:
-                resp.message(f"⏳ let me check that for you...{last_qna}")
+                resp.message(f"⏳ let me check that for you...")
 
         def process_response():
             print(f"########### Running process_response for user: {user_id}")
