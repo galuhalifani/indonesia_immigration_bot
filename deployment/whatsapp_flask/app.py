@@ -98,13 +98,15 @@ def whatsapp_webhook():
                     print(f"Error deducting chat balance: {str(e)}")
 
             Thread(target=process_response).start()
-            return str(resp)
+            return str(resp)   
         
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         print("❌ Internal server error:")
         resp = MessagingResponse()
         resp.message(f"We are sorry, the bot is currently unavailable or under maintenance. Please try again later.")
-        return str(resp), 500
+        return str(resp)
 
 @app.route("/sandbox", methods=["POST"])
 def whatsapp_webhook_sandbox():
