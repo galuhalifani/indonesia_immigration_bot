@@ -106,10 +106,10 @@ def check_user(user_id):
             balance = daily_limit
             user_collection.update_one({"user_id": user_id}, {"$set": {"chat_balance": daily_limit}})
 
-        return {"status": "existing", "user_id": user_id, "chat_balance": balance, "type": userType, user_details: user_details}
+        return {"status": "existing", "user_id": user_id, "chat_balance": balance, "type": userType, "user_details": user_details}
     else:
         user_collection.insert_one({"user_id": user_id, "timestamp": datetime.now(timezone.utc).isoformat(), "chat_balance": daily_limit, "type": "regular"})
-        return {"status": "new", "user_id": user_id, user_details: user_details, "chat_balance": daily_limit, "type": "regular"}
+        return {"status": "new", "user_id": user_id, "user_details": user_details, "chat_balance": daily_limit, "type": "regular"}
 
 def starts_with_question_keyword(query: str) -> bool:
     query_lower = query.lower().strip()
