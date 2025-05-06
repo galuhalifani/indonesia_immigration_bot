@@ -99,10 +99,12 @@ def whatsapp_webhook():
                 except Exception as e:
                     print(f"Error deducting chat balance: {str(e)}")
 
+            print(f"########### Ending process for: {user_id}", flush=True)
             Thread(target=process_response).start()
             return str(resp)   
         
     except Exception as e:
+        print(f"########### Error try except for user: {user_id}")
         import traceback
         traceback.print_exc()
         print("❌ Internal server error:")

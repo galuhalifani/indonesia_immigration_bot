@@ -103,7 +103,7 @@ def ask(query, user_id="anonymous", testing=False):
         else:
             qa = create_conversational_chain("anonymous", testing)
 
-        print(f"########### invoke")
+        print(f"########### invoke", flush=True)
         result = qa({"question": query})
 
         if not result['source_documents']:
@@ -112,7 +112,7 @@ def ask(query, user_id="anonymous", testing=False):
             answer = clean_answer(result["answer"])
             store_last_qna(user_id, query, answer)
 
-        print(f"########### finish ask process")
+        print(f"########### finish ask process", flush=True)
         return answer
 
     except Exception as e:
