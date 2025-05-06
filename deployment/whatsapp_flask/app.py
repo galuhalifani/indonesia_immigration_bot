@@ -76,6 +76,7 @@ def whatsapp_webhook():
                     reply = translate_text(lang, "Sorry, I missed that - can you please try asking again?")
             
                 # send the actual message via Twilio API
+                print(f"########### Sending message to user: {user_id}")
                 client = Client(os.getenv("TWILIO_SID"), os.getenv("TWILIO_AUTH_TOKEN"))
                 if len(reply) > 1599:
                     for part in split_message(reply):
@@ -93,6 +94,7 @@ def whatsapp_webhook():
                 
                 # deduct balance
                 try:
+                    print(f"########### Deducting balance for user: {user_id}")
                     deduct_chat_balance(user, user_id)
                 except Exception as e:
                     print(f"Error deducting chat balance: {str(e)}")

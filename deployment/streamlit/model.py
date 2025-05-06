@@ -27,6 +27,7 @@ def get_user_memory(user_id: str) -> ConversationBufferMemory:
     now = datetime.now(timezone.utc)
     user_data = memory_store.get(user_id)
 
+    print("########## get_user_memory")
     if user_data:
         last_active = user_data.get("last_active")
 
@@ -70,6 +71,7 @@ qa_chains = {}
 
 def create_conversational_chain(user_id = 'anonymous', testing=False):
     print(f"create conversational_chain for {user_id}", flush=True)
+
     is_not_anonymous = user_id != "anonymous"
     memory = get_user_memory(user_id) if is_not_anonymous else init_memory()
 
@@ -101,6 +103,7 @@ def ask(query, user_id="anonymous", testing=False):
         else:
             qa = create_conversational_chain("anonymous", testing)
 
+        print(f"########### invoke")
         result = qa({"question": query})
 
         if not result['source_documents']:
@@ -109,6 +112,7 @@ def ask(query, user_id="anonymous", testing=False):
             answer = clean_answer(result["answer"])
             store_last_qna(user_id, query, answer)
 
+        print(f"########### finish ask process")
         return answer
 
     except Exception as e:
