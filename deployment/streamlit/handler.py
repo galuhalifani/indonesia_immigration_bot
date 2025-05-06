@@ -102,14 +102,14 @@ def check_user(user_id):
         userType = user_details.get("type", 'regular')
 
         print(f'########## checkin user: {user_id}, last chat: {last_chat}, balance: {balance}')
-        time_since_last_chat = last_chat - datetime.now(timezone.utc)
-        print(f'########## time_since_last_chat: {time_since_last_chat}')
-        
-        if time_since_last_chat > timedelta(days=1) :
-            # restore balance
-            print("########## restoring balance")
-            balance = daily_limit
-            user_collection.update_one({"user_id": user_id}, {"$set": {"chat_balance": daily_limit}})
+        # time_since_last_chat = last_chat - datetime.now(timezone.utc)
+        # print(f'########## time_since_last_chat: {time_since_last_chat}')
+
+        # if time_since_last_chat > timedelta(days=1) :
+        #     # restore balance
+        #     print("########## restoring balance")
+        #     balance = daily_limit
+        #     user_collection.update_one({"user_id": user_id}, {"$set": {"chat_balance": daily_limit}})
 
         return {"status": "existing", "user_id": user_id, "chat_balance": balance, "type": userType, "user_details": user_details}
     else:
