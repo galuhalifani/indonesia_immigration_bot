@@ -5,7 +5,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")
 
 from flask import Flask, request, jsonify
 from deployment.streamlit.model import ask
-from deployment.streamlit.handler import save_feedback, starts_with_question_keyword, check_question_feedback, check_user, split_message, translate_text
+from deployment.streamlit.handler import save_feedback, starts_with_question_keyword, check_question_feedback, check_user, split_message, translate_text, deduct_chat_balance, check_user_balance
 from deployment.streamlit.text import greeting
 from twilio.twiml.messaging_response import MessagingResponse
 from twilio.rest import Client
@@ -38,8 +38,8 @@ def whatsapp_webhook():
         translated_greeting = translate_text(lang, greeting)
         resp.message(translated_greeting)
 
-    if len(incoming_msg) > 500:
-        exceed_length_resp = "Sorry, your message is too long. Please shorten it to less than 500 characters."
+    if len(incoming_msg) > 150:
+        exceed_length_resp = "Sorry, your message is too long. Please shorten it to less than 150 characters."
         reply = translate_text(lang, exceed_length_resp)
         resp.message(reply)
         return str(resp)
@@ -52,6 +52,12 @@ def whatsapp_webhook():
 
         resp.message(reply)
         return str(resp)
+    
+    is_balance_available = check_user_balance(user)
+    if not is_balance_available:
+        reply = translate_text(lang, "Sorry, you have reached your daily conversation limit. You can start a new conversation tomorrow.")
+        resp.message(reply)
+        return str(resp)
     else:
         if len(incoming_msg) > 4:
             # send an immediate placeholder response
@@ -62,6 +68,7 @@ def whatsapp_webhook():
         def process_response():
             print(f"########### Running process_response for user: {user_id}")
             reply = ask(incoming_msg, user_id)
+            
             if not reply:
                 reply = translate_text(lang, "Sorry, I missed that - can you please try asking again?")
         
@@ -80,6 +87,12 @@ def whatsapp_webhook():
                     to=user_id,
                     body=reply
                 )
+            
+            # deduct balance
+            try:
+                deduct_chat_balance(user['user_details'], user_id)
+            except Exception as e:
+                print(f"Error deducting chat balance: {str(e)}")
 
         Thread(target=process_response).start()
         return str(resp)
@@ -96,10 +109,19 @@ def whatsapp_webhook_sandbox():
     user = check_user(user_id)
     new_user = user['status'] == 'new'
 
+    lang = detect(incoming_msg)
+
     if new_user:
         print(f"########### Send initial greetings: {user_id}")
-        resp.message(greeting)
+        translated_greeting = translate_text(lang, greeting)
+        resp.message(translated_greeting)
 
+    if len(incoming_msg) > 150:
+        exceed_length_resp = "Sorry, your message is too long. Please shorten it to less than 150 characters."
+        reply = translate_text(lang, exceed_length_resp)
+        resp.message(reply)
+        return str(resp)
+    
     if result["is_feedback"]:
         if not last_qna["question"]:
             reply = "Sorry, please ask a question first before providing feedback."
@@ -108,25 +130,47 @@ def whatsapp_webhook_sandbox():
 
         resp.message(reply)
         return str(resp)
+    
+    is_balance_available = check_user_balance(user)
+    if not is_balance_available:
+        reply = translate_text(lang, "Sorry, you have reached your daily conversation limit. You can start a new conversation tomorrow.")
+        resp.message(reply)
+        return str(resp)
     else:
         if len(incoming_msg) > 4:
             # send an immediate placeholder response
             if not last_qna["question"]:
-                resp.message(f"⏳ let me check that for you...{last_qna}")
+                message = translate_text(lang, 'let me check that for you...')
+                resp.message(f"⏳ {message}")
 
         def process_response():
             print(f"########### Running process_response for user: {user_id}")
             reply = ask(incoming_msg, user_id)
+            
             if not reply:
-                reply = "Sorry, I missed that - can you please try asking again?"
+                reply = translate_text(lang, "Sorry, I missed that - can you please try asking again?")
         
             # send the actual message via Twilio API
             client = Client(os.getenv("TWILIO_SID"), os.getenv("TWILIO_AUTH_TOKEN"))
-            client.messages.create(
-                from_=os.getenv("TWILIO_PHONE_NUMBER_SANDBOX"),
-                to=user_id,
-                body=reply
-            )
+            if len(reply) > 1599:
+                for part in split_message(reply):
+                    client.messages.create(
+                        from_=os.getenv("TWILIO_PHONE_NUMBER_SANDBOX"),
+                        to=user_id,
+                        body=part
+                    )
+            else:
+                client.messages.create(
+                    from_=os.getenv("TWILIO_PHONE_NUMBER_SANDBOX"),
+                    to=user_id,
+                    body=reply
+                )
+            
+            # deduct balance
+            try:
+                deduct_chat_balance(user['user_details'], user_id)
+            except Exception as e:
+                print(f"Error deducting chat balance: {str(e)}")
 
         Thread(target=process_response).start()
         return str(resp)

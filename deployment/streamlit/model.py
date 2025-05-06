@@ -7,6 +7,7 @@ from langchain.chains import ConversationalRetrievalChain
 from langchain.memory import ConversationBufferMemory
 from datetime import datetime, timezone, timedelta
 from .prompt import PROFESSIONAL_PROMPT
+from .prompt_testing import TESTING_PROMPT
 from .handler import is_feedback_message, extract_feedback_content, OPENAI_KEY, collection, user_collection, store_last_qna
 
 # Initialize Embeddings
@@ -67,7 +68,7 @@ llm = ChatOpenAI(
 # @st.cache_resource
 qa_chains = {}
 
-def create_conversational_chain(user_id = 'anonymous'):
+def create_conversational_chain(user_id = 'anonymous', testing=False):
     print(f"create conversational_chain for {user_id}", flush=True)
     is_not_anonymous = user_id != "anonymous"
     memory = get_user_memory(user_id) if is_not_anonymous else init_memory()
@@ -81,7 +82,7 @@ def create_conversational_chain(user_id = 'anonymous'):
         llm=llm,
         retriever=retriever,
         memory=memory,
-        combine_docs_chain_kwargs={"prompt": PROFESSIONAL_PROMPT},
+        combine_docs_chain_kwargs={"prompt": PROFESSIONAL_PROMPT if not testing else TESTING_PROMPT},
         return_source_documents=True
     )
 
@@ -93,12 +94,12 @@ def clean_answer(raw_answer):
     reference_checked = re.sub(r'^.*Read more at(?!.*(https?://|www\.)).*$', '', cleaned, flags=re.MULTILINE)
     return reference_checked.strip()
     
-def ask(query, user_id="anonymous"):
+def ask(query, user_id="anonymous", testing=False):
     try:
         if user_id != "anonymous":
-            qa = create_conversational_chain(user_id)
+            qa = create_conversational_chain(user_id, testing)
         else:
-            qa = create_conversational_chain("anonymous")
+            qa = create_conversational_chain("anonymous", testing)
 
         result = qa({"question": query})
 

@@ -1,5 +1,5 @@
 import re
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from pymongo import MongoClient
 import os
 from dotenv import load_dotenv
@@ -93,12 +93,23 @@ def check_question_feedback(query, user_id="anonymous"):
         return {"is_feedback": False, "query": query, "feedback_obj": feedback_obj, "last_qna": last_qna}
     
 def check_user(user_id):
+    daily_limit = 5
     user_details = user_collection.find_one({"user_id": user_id})
+
     if user_details:
-        return {"status": "existing", "user_id": user_id}
+        last_chat = user_details.get("last_chat", datetime.now(timezone.utc))
+        balance = user_details.get("chat_balance", daily_limit)
+        userType = user_details.get("type", 'regular')
+
+        if last_chat - datetime.now(timezone.utc) > timedelta(days=1):
+            # restore balance
+            balance = daily_limit
+            user_collection.update_one({"user_id": user_id}, {"$set": {"chat_balance": daily_limit}})
+
+        return {"status": "existing", "user_id": user_id, "chat_balance": balance, "type": userType, user_details: user_details}
     else:
-        user_collection.insert_one({"user_id": user_id, "timestamp": datetime.now(timezone.utc).isoformat()})
-        return {"status": "new", "user_id": user_id}
+        user_collection.insert_one({"user_id": user_id, "timestamp": datetime.now(timezone.utc).isoformat(), "chat_balance": daily_limit, "type": "regular"})
+        return {"status": "new", "user_id": user_id, user_details: user_details}
 
 def starts_with_question_keyword(query: str) -> bool:
     query_lower = query.lower().strip()
@@ -157,3 +168,21 @@ def translate_text(lang, text):
 
 def split_message(text, max_length=1530):
     return [text[i:i+max_length] for i in range(0, len(text), max_length)]
+
+def deduct_chat_balance(user, user_id):
+    if user:
+        if user["type"] == 'regular' and user["chat_balance"] > 0:
+            user_collection.update_one(
+                {"user_id": user_id},
+                {
+                    "$inc": {"chat_balance": -1},
+                    "$set": {"last_chat": datetime.now(timezone.utc)}
+                }
+            )
+        
+def check_user_balance(user):
+    balance = user["chat_balance"]
+    if user["type"] == 'regular' and balance > 0:
+        return True
+    else:
+        return False
