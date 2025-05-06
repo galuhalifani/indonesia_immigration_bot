@@ -5,7 +5,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")
 
 from flask import Flask, request, jsonify
 from deployment.streamlit.model import ask
-from deployment.streamlit.handler import save_feedback, starts_with_question_keyword, check_question_feedback, check_user, split_message, translate_text, deduct_chat_balance, check_user_balance
+from deployment.streamlit.handler import save_feedback, starts_with_question_keyword, check_question_feedback, check_user, split_message, translate_text, deduct_chat_balance, check_user_balance, add_question_ticker
 from deployment.streamlit.text import greeting
 from twilio.twiml.messaging_response import MessagingResponse
 from twilio.rest import Client
@@ -98,6 +98,9 @@ def whatsapp_webhook():
                     deduct_chat_balance(user, user_id)
                 except Exception as e:
                     print(f"Error deducting chat balance: {str(e)}")
+
+                print(f"########### Refreshing web counter")
+                add_question_ticker()
 
             print(f"########### Ending process for: {user_id}", flush=True)
             Thread(target=process_response).start()

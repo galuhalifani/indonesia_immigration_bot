@@ -27,9 +27,12 @@ if client:
     collection = db['instant']
     feedback_collection = db['feedback']
     user_collection = db['user']
+    web_counter_collection = db['web_counter']
 else:
     collection = None
     feedback_collection = None
+    user_collection = None
+    web_counter_collection = None
 
 FEEDBACK_KEYWORDS = ['Feedback', 'feedback', 'Feedback', 'Feedback?', 'feedback?', 'feedback!', 'not helpful', 'not helpful', 'not helpful?', 'not helpful?', 'not helpful!', 'helpful', 'helpful?', 'helpful!', "'helpful'", "'not helpful", "'feedback'", "membantu", "tidak membantu"]
 
@@ -200,4 +203,19 @@ def check_user_balance(user):
     elif user["type"] == 'unlimited':
         return True
     else:
+        return False
+    
+def add_question_ticker():
+    try:
+        web_counter_collection.update_one(
+                {"type": "whatsapp"},
+                {
+                    "$inc": {"counter": +1},
+                    "$set": {"timestamp": datetime.now(timezone.utc)}
+                },
+                upsert=True
+            )
+        return True
+    except Exception as e:
+        print("Error updating web counter:", e)
         return False
