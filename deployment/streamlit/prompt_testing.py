@@ -1,7 +1,7 @@
 from langchain.prompts import PromptTemplate
 
 # Optimized Professional Prompt Template
-PROFESSIONAL_PROMPT = PromptTemplate(
+TESTING_PROMPT = PromptTemplate(
     input_variables=["context", "question"],
     template="""
     You are an immigration assistant helping users with questions about Indonesian immigration services, procedures, and regulations.
