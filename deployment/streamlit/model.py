@@ -7,7 +7,6 @@ from langchain.chains import ConversationalRetrievalChain
 from langchain.memory import ConversationBufferMemory
 from datetime import datetime, timezone, timedelta
 from .prompt import PROFESSIONAL_PROMPT
-from .prompt_testing import TESTING_PROMPT
 from .handler import is_feedback_message, extract_feedback_content, OPENAI_KEY, collection, user_collection, store_last_qna
 
 # Initialize Embeddings
@@ -21,17 +20,19 @@ def init_memory():
     return ConversationBufferMemory(memory_key="chat_history", return_messages=True, output_key='answer')
 
 memory_store = {}
-EXPIRY_HOURS = 3
+EXPIRY_HOURS = 1
 
 def get_user_memory(user_id: str) -> ConversationBufferMemory:
     now = datetime.now(timezone.utc)
     user_data = memory_store.get(user_id)
 
-    print("########## get_user_memory")
+    print(f"########## get_user_memory {user_data}, {user_id}", flush=True)
     if user_data:
         last_active = user_data.get("last_active")
+        print("########## User last active:", last_active, flush=True)
 
         still_active = now - last_active < timedelta(hours=EXPIRY_HOURS)
+        print("########## Still active:", still_active, flush=True)
 
         if last_active and still_active:
             user_data["last_active"] = now
@@ -69,7 +70,7 @@ llm = ChatOpenAI(
 # @st.cache_resource
 qa_chains = {}
 
-def create_conversational_chain(user_id = 'anonymous', testing=False):
+def create_conversational_chain(user_id = 'anonymous'):
     print(f"create conversational_chain for {user_id}", flush=True)
 
     is_not_anonymous = user_id != "anonymous"
@@ -84,7 +85,7 @@ def create_conversational_chain(user_id = 'anonymous', testing=False):
         llm=llm,
         retriever=retriever,
         memory=memory,
-        combine_docs_chain_kwargs={"prompt": PROFESSIONAL_PROMPT if not testing else TESTING_PROMPT},
+        combine_docs_chain_kwargs={"prompt": PROFESSIONAL_PROMPT},
         return_source_documents=True
     )
 
@@ -96,16 +97,16 @@ def clean_answer(raw_answer):
     reference_checked = re.sub(r'^.*Read more at(?!.*(https?://|www\.)).*$', '', cleaned, flags=re.MULTILINE)
     return reference_checked.strip()
     
-def ask(query, user_id="anonymous", testing=False):
+def ask(query, user_id="anonymous"):
     try:
         if user_id != "anonymous":
-            qa = create_conversational_chain(user_id, testing)
+            qa = create_conversational_chain(user_id)
         else:
-            qa = create_conversational_chain("anonymous", testing)
+            qa = create_conversational_chain("anonymous")
 
         print(f"########### invoke", flush=True)
         result = qa({"question": query})
-        
+
         try:
             usage = result.get('__raw', {}).get('usage', {})
             print(f"🔍🔍🔍🔍🔍🔍 Tokens used: {usage}")
