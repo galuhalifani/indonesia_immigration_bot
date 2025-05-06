@@ -101,7 +101,10 @@ def check_user(user_id):
         balance = user_details.get("chat_balance", daily_limit)
         userType = user_details.get("type", 'regular')
 
-        if last_chat - datetime.now(timezone.utc) > timedelta(days=1):
+        print(f'########## checkin user: {user_id}, last chat: {last_chat}, balance: {balance}')
+        time_since_last_chat = last_chat - datetime.now(timezone.utc)
+        print(f'########## time_since_last_chat: {time_since_last_chat}')
+        if time_since_last_chat > timedelta(days=1) :
             # restore balance
             balance = daily_limit
             user_collection.update_one({"user_id": user_id}, {"$set": {"chat_balance": daily_limit}})
@@ -109,6 +112,7 @@ def check_user(user_id):
         return {"status": "existing", "user_id": user_id, "chat_balance": balance, "type": userType, "user_details": user_details}
     else:
         user_collection.insert_one({"user_id": user_id, "timestamp": datetime.now(timezone.utc).isoformat(), "chat_balance": daily_limit, "type": "regular"})
+        print(f'########## creating new user: {user_id}, balance: {balance}')
         return {"status": "new", "user_id": user_id, "user_details": user_details, "chat_balance": daily_limit, "type": "regular"}
 
 def starts_with_question_keyword(query: str) -> bool:
@@ -171,6 +175,7 @@ def split_message(text, max_length=1530):
 
 def deduct_chat_balance(user, user_id):
     if user:
+        print(f'########## deduct_chat_balance: {user}, type: {user["type"]}, balance: {user["chat_balance"]}')
         if user["type"] == 'regular' and user["chat_balance"] > 0:
             user_collection.update_one(
                 {"user_id": user_id},
@@ -182,6 +187,7 @@ def deduct_chat_balance(user, user_id):
         
 def check_user_balance(user):
     balance = user["chat_balance"]
+    print(f'########## check_user_balance: {user}, type: {user["type"]}, balance: {balance}')
     if user["type"] == 'regular' and balance > 0:
         return True
     else:
