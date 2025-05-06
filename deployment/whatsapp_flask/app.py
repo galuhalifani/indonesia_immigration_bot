@@ -90,7 +90,7 @@ def whatsapp_webhook():
             
             # deduct balance
             try:
-                deduct_chat_balance(user['user_details'], user_id)
+                deduct_chat_balance(user, user_id)
             except Exception as e:
                 print(f"Error deducting chat balance: {str(e)}")
 
