@@ -102,6 +102,14 @@ def check_user(user_id):
         userType = user_details.get("type", 'regular')
 
         print(f'########## checkin user: {user_id}, last chat: {last_chat}, balance: {balance}')
+        print("last_chat =", last_chat)
+        print("type(last_chat) =", type(last_chat))
+        print("tzinfo =", last_chat.tzinfo)
+
+        now = datetime.now(timezone.utc)
+        print("now =", now)
+        print("type(now) =", type(now))
+        print("tzinfo(now) =", now.tzinfo)
         # time_since_last_chat = last_chat - datetime.now(timezone.utc)
         # print(f'########## time_since_last_chat: {time_since_last_chat}')
 
