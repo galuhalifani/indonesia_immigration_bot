@@ -105,6 +105,12 @@ def ask(query, user_id="anonymous", testing=False):
 
         print(f"########### invoke", flush=True)
         result = qa({"question": query})
+        
+        try:
+            usage = result.get('__raw', {}).get('usage', {})
+            print(f"🔍🔍🔍🔍🔍🔍 Tokens used: {usage}")
+        except Exception as e:
+            print(f"Error getting usage: {str(e)}", flush=True)
 
         if not result['source_documents']:
             return f"Sorry, no relevant information found on the question asked. Please contact immigration customer service through https://www.imigrasi.go.id/hubungi."
