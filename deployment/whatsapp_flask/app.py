@@ -24,12 +24,14 @@ def whatsapp_webhook():
     try:
         incoming_msg = request.values.get("Body", "").strip()
         user_id = request.values.get("From", "").strip()
+        print(f"########### Starting process: {incoming_msg}, {user_id}")
 
         result = check_question_feedback(incoming_msg, user_id)
         last_qna = result["last_qna"]
 
         resp = MessagingResponse()
         user = check_user(user_id)
+        print(f"########### User extracted: {user}")
         new_user = user['status'] == 'new'
 
         lang = detect(incoming_msg)
@@ -102,7 +104,7 @@ def whatsapp_webhook():
         print("❌ Internal server error:")
         resp = MessagingResponse()
         resp.message(f"We are sorry, the bot is currently unavailable or under maintenance. Please try again later.")
-        return str(resp)
+        return str(resp), 500
 
 @app.route("/sandbox", methods=["POST"])
 def whatsapp_webhook_sandbox():
