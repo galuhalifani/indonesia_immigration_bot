@@ -80,7 +80,7 @@ def get_last_answer(user_id="anonymous"):
 
 def check_question_feedback(query, user_id="anonymous"):
     feedback_obj = None
-    last_qna = {"question": None, "answer": None}
+    last_qna = {"question": None, "answer": None}   
 
     if is_feedback_message(query):
         feedback_obj = extract_feedback_content(query)
@@ -196,6 +196,8 @@ def check_user_balance(user):
     balance = user["chat_balance"]
     print(f'########## check_user_balance: {user}, type: {user["type"]}, balance: {balance}')
     if user["type"] == 'regular' and balance > 0:
+        return True
+    elif user["type"] == 'unlimited':
         return True
     else:
         return False
