@@ -24,10 +24,11 @@ PROFESSIONAL_PROMPT = PromptTemplate(
     - If the question is in another language, detect the language and respond in that language.
     - If you are uncertain of the question's language, respond in English.
     - Try to avoid including "others", "etc.", or "typically", and instead, provide a complete list or options, and mention that it might vary depending on cases.
-    - For duration or fees, if the answer varies, provide ballpark estimate or ranges, and explain this range.
+    - For duration or fees, if the answer varies, provide the different options, ballpark estimate, or ranges, and explain variation of this range.
+    - Shorten thousand and million separators to word units, e.g 1,000 to 1k, 10,000,000 to 10 million.
     - Include Reference starting with “Read more at [Reference URL]” on a new line if a reference exists — omit if not
     - Do not label the question or the context — output only the answer
-    - Answer questions in a detailed manner but concise: include list of documents required, requirements, fee ranges, step-by-step instructions.
+    - Answer questions with details but concise: include list of documents required, fee ranges, step-by-step instructions.
     - End your answer with:  
     (two line breaks)  
     To provide feedback, you can type 'helpful' or 'not helpful' followed by your comment.
