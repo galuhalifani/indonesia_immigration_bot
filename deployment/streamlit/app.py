@@ -16,8 +16,11 @@ from streamlit_option_menu import option_menu
 import os
 import re
 from model import ask
-from handler import save_feedback, translate_answer, check_question_feedback
+from handler import save_feedback, translate_answer, check_question_feedback, translate_text, is_overlimit, refresh_web_counter
 from text import feedback_instr, no_affiliation, description, no_replacement_for_official_advice, source_of_answer_short, source_of_answer
+from langdetect import detect
+from deep_translator import GoogleTranslator
+from datetime import datetime
 
 primary_color = "#ffffff"
 secondary_color = "#1E1E1E"
@@ -83,6 +86,12 @@ st.markdown(f"""
     }}
 </style>
 """, unsafe_allow_html=True)
+
+current_hour = datetime.now().hour
+
+local_hour = (current_hour + 7) % 24
+working_hours = (8 <= local_hour < 13) or (17 <= local_hour < 20)
+extra_remark = " (GMT+7)"
 
 # Sidebar Menu
 with st.sidebar:
@@ -169,14 +178,14 @@ if selected == "Chatbot":
     st.markdown(f"""
     <div class="chat-container">
         <div style="background: var(--secondary); padding: 1rem; border-radius: 10px; margin-bottom: 1rem;">
-            🤖 You can ask in English or Indonesian. Ask anything related to:
-            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.5rem; margin-top: 0.5rem;">
-                <span style="padding: 0.3rem; border-radius: 5px;">✔️ M-Paspor </span>
-                <span style="padding: 0.3rem; border-radius: 5px;">✔️ Immigration Documents and Procedures </span>
+                🤖 You can ask in English or Indonesian
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.5rem; margin-top: 0.5rem;">
+                <span style="padding: 0.3rem; border-radius: 5px;">✔️ Indonesian Passport & M-Paspor </span>
                 <span style="padding: 0.3rem; border-radius: 5px;">✔️ Indonesian Citizen Immigration Services </span>
                 <span style="padding: 0.3rem; border-radius: 5px;">✔️ Foreign Citizen Immigration Services </span>
                 <span style="padding: 0.3rem; border-radius: 5px;">✔️ Dual Citizenship for Children </span>
-                <span style="padding: 0.3rem; border-radius: 5px;">✔️ Related Immigration Regulations </span>
+                <span style="padding: 0.3rem; border-radius: 5px;">✔️ Indonesian Immigration Regulations </span>
+                <span style="padding: 0.3rem; border-radius: 5px;">❌ Foreign Affairs (Schengen or US Visa) </span>
             </div>
             <br>
             <span>{feedback_instr}</span>
@@ -192,63 +201,86 @@ if selected == "Chatbot":
             "content": "Hello! I'm Instant. How can I help you today?"
         }]
 
+    is_limit_exceeded = False
+    refresh = refresh_web_counter()
+    if refresh:
+        is_limit_exceeded = is_overlimit()
+
+    if working_hours and not is_limit_exceeded:
     # Display Chat History
-    for message in st.session_state.messages:
-        if message["role"] == "user":
-            st.markdown(f"""
-            <div class="chat-container">
-                <div class="user-message">
-                    😀 <strong>You</strong><br>
-                    {message["content"]}
+        for message in st.session_state.messages:
+            if message["role"] == "user":
+                st.markdown(f"""
+                <div class="chat-container">
+                    <div class="user-message">
+                        😀 <strong>You</strong><br>
+                        {message["content"]}
+                    </div>
                 </div>
-            </div>
-            """, unsafe_allow_html=True)
-        else:
-            st.markdown(f"""
-            <div class="chat-container">
-                <div class="assistant-message">
-                    🤖 <strong>Instant Bot</strong><br>
-                    {message["content"]}
+                """, unsafe_allow_html=True)
+            else:
+                st.markdown(f"""
+                <div class="chat-container">
+                    <div class="assistant-message">
+                        🤖 <strong>Instant Bot</strong><br>
+                        {message["content"]}
+                    </div>
                 </div>
-            </div>
-            """, unsafe_allow_html=True)
+                """, unsafe_allow_html=True)
 
-    query = st.chat_input("Ask your question here... (Example: How to apply for KITAS?)")
+        query = st.chat_input("Ask your question here... (Example: How to apply for KITAS?)")
 
-    if query:
-        is_feedback = check_question_feedback(query, "anonymous")
-        
-        if is_feedback['is_feedback']:
-            st.session_state.messages.append({"role": "user", "type": "feedback", "content": query})
-            last_question = is_feedback['last_qna']['question']
-
-            if not last_question:
-                resp = "Sorry, you have not asked a question, or the session has been reset. Please ask a question first before providing feedback."
-                mssg = translate_answer(query, resp)
+        if query:
+            lang = detect(query)
+            if len(query) > 150:
+                char_too_long = "Sorry, your message is too long. Please shorten it to less than 150 characters."
+                exceed_length_resp = translate_text(lang, char_too_long)
                 st.session_state.messages.append({
                     "role": "assistant",
                     "type": "warning",
-                    "content": mssg
+                    "content": exceed_length_resp
                 })
                 st.rerun()
             else:
-                feedback_obj = is_feedback['feedback_obj']
-                last_qna = is_feedback['last_qna']
+                is_feedback = check_question_feedback(query, "anonymous")
+                
+                if is_feedback['is_feedback']:
+                    st.session_state.messages.append({"role": "user", "type": "feedback", "content": query})
+                    last_question = is_feedback['last_qna']['question']
 
-                response = save_feedback(feedback_obj, last_qna)
-                if "error" not in response:
-                    st.toast("Feedback recorded!", icon="💾")
+                    if not last_question:
+                        resp = "Sorry, you have not asked a question, or the session has been reset. Please ask a question first before providing feedback."
+                        st.session_state.messages.append({
+                            "role": "assistant",
+                            "type": "warning",
+                            "content": resp
+                        })
+                        st.rerun()
+                    else:
+                        feedback_obj = is_feedback['feedback_obj']
+                        last_qna = is_feedback['last_qna']
 
-                st.markdown(response)
+                        response = save_feedback(feedback_obj, last_qna)
+                        if "error" not in response:
+                            st.toast("Feedback recorded!", icon="💾")
 
-        else:
-            st.session_state.messages.append({"role": "user", "type": "question", "content": query})
+                        st.markdown(response)
 
-            with st.spinner("Looking up..."):
-                answer = ask(query)
+                else:
+                    st.session_state.messages.append({"role": "user", "type": "question", "content": query})
 
-            st.session_state.messages.append({"role": "assistant", "type": "answer", "content": answer})  
-            st.rerun()
+                    with st.spinner("Looking up..."):
+                        answer = ask(query)
+
+                    st.session_state.messages.append({"role": "assistant", "type": "answer", "content": answer})  
+                    st.rerun()
+
+    elif is_limit_exceeded:
+        st.info("Sorry, due to usage control, the web-based bot is currently paused and will be back on tomorrow.\nFor 24-hour access, you can utilize our WhatsApp Bot at +1 234 423 4277.\n\n")
+        query = None
+    else:
+        st.info(f"Sorry, due to usage control, the web-based bot is only available between 8 AM - 1 PM and between 5 PM - 8 PM{extra_remark}.\nFor 24-hour access, you can utilize our WhatsApp Bot at +1 234 423 4277.\n\n")
+        query = None
 
 elif selected == "About":
     st.markdown("### 📟 About Instant")
