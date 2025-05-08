@@ -58,7 +58,7 @@ def whatsapp_webhook():
         
         is_balance_available = check_user_balance(user)
         if not is_balance_available:
-            reply = translate_text(lang, "Sorry, you have reached your daily conversation limit. You can start a new conversation tomorrow.")
+            reply = translate_text(lang, "Sorry, you have reached your daily conversation limit. You can start a new conversation tomorrow.\n\n If you'd like to increase your free chat limit for a specific purpose, please contact us at the email address provided in our bio/description to be whitelisted. Kindly note that it will be reviewed on case-by-case basis.")
             resp.message(reply)
             return str(resp)
         else:
