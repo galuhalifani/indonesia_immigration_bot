@@ -96,7 +96,7 @@ def check_question_feedback(query, user_id="anonymous"):
         return {"is_feedback": False, "query": query, "feedback_obj": feedback_obj, "last_qna": last_qna}
     
 def check_user(user_id):
-    daily_limit = 15
+    daily_limit = 10
     user_details = user_collection.find_one({"user_id": user_id})
 
     if user_details:
